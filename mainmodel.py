@@ -6,7 +6,7 @@ import torch.optim as optim
 from tqdm import tqdm
 
 class MyModel(nn.Module):
-    def __init__(self, img_size=64, no_of_classes=2, ksize=5, dim=64):
+    def __init__(self, img_size=64, no_of_classes=2, ksize=5, dim=32):
         self.no_of_classes = no_of_classes
         self.img_size = img_size
         self.ksize = ksize

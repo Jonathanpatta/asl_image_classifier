@@ -4,9 +4,12 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+from mainmodel import MyModel
+from model_funcs import predict_img
+
 
 cap = cv2.VideoCapture(0)
-
+'''
 class Torchconvnet(nn.Module):
     def __init__(self):
         self.img_size = 128
@@ -38,15 +41,16 @@ class Torchconvnet(nn.Module):
         x = x.view(-1, self._to_linear)  # .view is reshape ... this flattens X before 
         x = F.relu(self.fc1(x))
         x = self.fc2(x) # bc this is our output layer. No activation here.
-        return F.softmax(x, dim=1)
+        return F.softmax(x, dim=1)'''
+
+fingers = r"C:\Users\Jonathan\Documents\pytorch\image_proc_project\fingers\data.pt"
+
+device=torch.device('cpu')
+net = MyModel(img_size=128, no_of_classes=27).to(device)
+net.load_state_dict(torch.load(r"C:\Users\Jonathan\Documents\pytorch\image_proc_project\asl\asl_classifier.pt", map_location=device))
 
 
-device = torch.device('cuda:0')
-net = Torchconvnet()
-net.load_state_dict(torch.load(r"C:\Users\Jonathan\Documents\pytorch\image_proc_project\fingers\data.pt", map_location=device))
-
-
-def predict_img(net,img_path):
+def predict_imgs(net,img_path):
     import cv2
     #img_path = r"C:\Users\Jonathan\Downloads\banana.jpg"
     with torch.no_grad():
@@ -54,27 +58,34 @@ def predict_img(net,img_path):
         img = img_path
         img = cv2.resize(img, (128,128))
         imgtensor = torch.Tensor(img).view(-1,128,128)
-        imgtensor /= 255q
+        imgtensor /= 255
         #imgtensor = test_X[23]
         net_out = net(imgtensor.view(-1, 1, 128, 128))[0]  # returns a list, 
         predicted_class = torch.argmax(net_out).tolist()
 
     #print(predicted_class,net_out[predicted_class],net_out.tolist())
+    print(net_out[predicted_class])
 
 
 #predict_img(net,r"C:\Users\Jonathan\Downloads\IMG_2032.jpg")
 import time
+import cv2
+
+alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s',' ','t','u','v','w','x','y','z']
 
 t = time.time()
  
 while(True):
     ret, frame = cap.read()
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
- 
-    cv2.imshow('frame',gray)
+    h,w,_ = frame.shape
+    frame = frame[0:int(h), 0:int(w/2)]
+    frame = cv2.flip(frame,1)
+    cv2.imshow('frame',frame)
+    
+    cv2.imshow('frame',frame)
     if cv2.waitKey(1) & 0xFF == ord('t'):
-        predict_img(net,gray)
-        print(1/(time.time()-t))
+        print(alphabet[predict_img(frame)])
+        #print(1/(time.time()-t))
     t = time.time()
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
